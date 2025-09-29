@@ -1,49 +1,58 @@
 'use strict';
 
-// Отримуємо елемент .logo
-const logo = document.querySelector('.logo');
+// Чекаємо, поки DOM повністю завантажиться
+document.addEventListener('DOMContentLoaded', () => {
+  const logo = document.querySelector('.logo');
 
-// Promise1: резолвиться при кліку на .logo
-const promise1 = new Promise((resolve) => {
-  logo.addEventListener('click', () => {
-    resolve();
-  });
-});
-
-// Promise2: реджектиться через 3 секунди
-const promise2 = new Promise((resolve, reject) => {
-  setTimeout(() => {
-    reject(new Error('Promise was rejected!'));
-  }, 3000);
-});
-
-// Функція для створення повідомлення
-function showMessage(text, isError = false) {
-  const div = document.createElement('div');
-
-  div.classList.add('message');
-
-  if (isError) {
-    div.classList.add('error-message');
+  if (!logo) {
+    return;
   }
-  div.textContent = text;
-  document.body.appendChild(div);
-}
 
-// Обробники для promise1
-promise1
-  .then(() => {
-    showMessage('Promise was resolved!');
-  })
-  .catch(() => {
-    showMessage('Promise was rejected!', true);
+  // --- PROMISE 1 ---
+  const promise1 = new Promise((resolve) => {
+    // Окремий хендлер, щоб можна було його зняти
+    const handleClick = () => {
+      resolve();
+      logo.removeEventListener('click', handleClick);
+    };
+
+    logo.addEventListener('click', handleClick);
   });
 
-// Обробники для promise2
-promise2
-  .then(() => {
-    showMessage('Promise was resolved!');
-  })
-  .catch((err) => {
-    showMessage(err.message, true);
+  // --- PROMISE 2 ---
+  const promise2 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      reject(new Error('Promise was rejected!'));
+    }, 3000);
   });
+
+  // --- HELPER: показати повідомлення ---
+  function showMessage(text, isError = false) {
+    const div = document.createElement('div');
+
+    div.classList.add('message');
+
+    if (isError) {
+      div.classList.add('error-message');
+    }
+    div.textContent = text;
+    document.body.appendChild(div);
+  }
+
+  // --- HANDLERS ---
+  promise1
+    .then(() => {
+      showMessage('Promise was resolved!');
+    })
+    .catch(() => {
+      showMessage('Promise was rejected!', true);
+    });
+
+  promise2
+    .then(() => {
+      showMessage('Promise was resolved!');
+    })
+    .catch((err) => {
+      showMessage(err.message, true);
+    });
+});
